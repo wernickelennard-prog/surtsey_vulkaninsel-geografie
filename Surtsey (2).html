@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Surtsey — Die Geburt einer Insel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --fire:#FF4500; --orange:#FF7A00; --gold:#FFB800;
+  --dark:#0D0D10; --card:#18181E; --border:#252530;
+  --text:#F0EDE8; --muted:#80808F;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Nunito',sans-serif;background:var(--dark);color:var(--text);overflow-x:hidden}
+
+/* ── HERO ── */
+#hero{position:relative;height:100svh;min-height:480px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+#vc{position:absolute;inset:0;width:100%;height:100%}
+.hi{position:relative;z-index:5;text-align:center;padding:0 20px;pointer-events:none}
+.badge{display:inline-block;background:rgba(255,69,0,.14);border:1px solid rgba(255,69,0,.4);
+  color:var(--gold);font-size:.68rem;font-weight:800;letter-spacing:.22em;text-transform:uppercase;
+  padding:6px 16px;border-radius:100px;margin-bottom:16px;
+  opacity:0;animation:up .8s .4s forwards}
+.htitle{font-family:'Bebas Neue',sans-serif;font-size:clamp(4rem,18vw,14rem);
+  line-height:.85;letter-spacing:.03em;
+  background:linear-gradient(155deg,#fff 0%,#FFB800 50%,#FF4500 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 50px rgba(255,100,0,.45));
+  opacity:0;animation:up .9s .7s forwards;
+  width:100%;text-align:center;word-break:keep-all}
+.hsub{margin-top:14px;font-size:clamp(.85rem,3vw,1rem);color:rgba(240,237,232,.55);
+  font-weight:700;opacity:0;animation:up .8s 1s forwards}
+.scue{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:5;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  opacity:0;animation:fi 1s 2s forwards}
+.scue span{font-size:.6rem;letter-spacing:.25em;text-transform:uppercase;color:var(--muted)}
+.chev{width:18px;height:18px;border-right:2.5px solid var(--fire);border-bottom:2.5px solid var(--fire);
+  transform:rotate(45deg);animation:bounce 1.4s infinite}
+
+/* ── NAV DOTS hidden ── */
+#dots{display:none}
+
+/* ── MAP BTN ── */
+#mbtn{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));
+  left:50%;transform:translateX(-50%);
+  z-index:800;
+  background:linear-gradient(135deg,var(--fire),var(--orange));
+  color:#fff;border:none;padding:13px 24px;border-radius:100px;
+  font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:900;
+  letter-spacing:.05em;text-transform:uppercase;cursor:pointer;
+  box-shadow:0 4px 22px rgba(255,69,0,.55);transition:transform .2s;
+  white-space:nowrap}
+#mbtn:active{transform:translateX(-50%) scale(.93)}
+
+/* ── MAP OVERLAY ── */
+#mover{position:fixed;inset:0;z-index:1500;display:flex;flex-direction:column;
+  transform:translateY(100%);transition:transform .45s cubic-bezier(.34,1.1,.64,1)}
+#mover.open{transform:translateY(0)}
+#mtop{background:var(--card);padding:14px 18px;display:flex;
+  justify-content:space-between;align-items:center;
+  border-bottom:1px solid var(--border);flex-shrink:0}
+#mtop h3{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:.1em;color:var(--fire)}
+#mcls{background:var(--border);border:none;color:var(--text);
+  padding:8px 16px;border-radius:10px;font-family:'Nunito',sans-serif;
+  font-weight:800;font-size:.85rem;cursor:pointer}
+#themap{flex:1;min-height:0;position:relative;overflow:hidden;background:#0a0e18}
+#mapcanvas{width:100%;height:100%;display:block;cursor:grab}
+#mapcanvas:active{cursor:grabbing}
+.map-tooltip{position:absolute;background:rgba(18,18,24,.92);border:1px solid var(--border);
+  color:var(--text);font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:700;
+  padding:6px 10px;border-radius:8px;pointer-events:none;white-space:nowrap;
+  box-shadow:0 4px 14px rgba(0,0,0,.5);transform:translate(-50%,-130%);z-index:10}
+.map-tooltip b{color:var(--fire)}
+.map-legend{position:absolute;bottom:14px;left:14px;
+  background:rgba(18,18,24,.88);border:1px solid var(--border);
+  border-radius:10px;padding:10px 14px;font-family:'Nunito',sans-serif;font-size:.72rem;
+  color:var(--muted);line-height:1.9}
+.map-legend span{display:inline-block;width:18px;height:3px;
+  margin-right:6px;vertical-align:middle}
+.map-zoom{position:absolute;top:14px;right:14px;display:flex;flex-direction:column;gap:6px}
+.map-zoom button{background:rgba(18,18,24,.9);border:1px solid var(--border);
+  color:var(--text);width:44px;height:44px;border-radius:10px;font-size:1.3rem;
+  cursor:pointer;font-family:'Nunito',sans-serif;font-weight:900;
+  display:flex;align-items:center;justify-content:center}
+
+/* ── CHAPTERS ── */
+main{max-width:640px;margin:0 auto;padding:0 18px calc(120px + env(safe-area-inset-bottom))}
+.ch{padding:72px 0 52px;border-bottom:1px solid var(--border);
+  opacity:0;transform:translateY(50px);transition:opacity .65s ease,transform .65s ease}
+.ch.show{opacity:1;transform:translateY(0)}
+.chnum{font-family:'Bebas Neue',sans-serif;font-size:5.5rem;
+  color:var(--border);line-height:1;margin-bottom:-10px;user-select:none}
+.tag{display:inline-block;background:rgba(255,69,0,.1);border:1px solid rgba(255,69,0,.3);
+  color:var(--fire);font-size:.65rem;font-weight:900;letter-spacing:.18em;text-transform:uppercase;
+  padding:4px 13px;border-radius:100px;margin-bottom:12px}
+.ch h2{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.1rem,9vw,3.4rem);
+  letter-spacing:.05em;line-height:1;margin-bottom:20px;color:var(--text)}
+.ch h2 b{color:var(--fire)}
+.ch p{font-size:clamp(.93rem,3vw,1.03rem);line-height:1.82;color:#ADAAA5;
+  margin-bottom:14px;font-weight:400}
+.ch p strong{color:var(--text);font-weight:800}
+
+.callout{border-left:3px solid var(--fire);background:rgba(255,69,0,.07);
+  border-radius:0 14px 14px 0;padding:16px 18px;margin:22px 0;
+  font-size:.94rem;line-height:1.72;color:var(--text)}
+.callout strong{color:var(--gold)}
+
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:24px}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px}
+.sc .lb{font-size:.63rem;text-transform:uppercase;letter-spacing:.15em;
+  color:var(--muted);margin-bottom:6px;font-weight:800}
+.sc .vl{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--fire);
+  letter-spacing:.05em;line-height:1}
+.sc .un{font-size:.68rem;color:var(--muted);margin-top:3px}
+
+.tline{margin-top:26px;position:relative;padding-left:30px}
+.tline::before{content:'';position:absolute;left:7px;top:8px;bottom:0;
+  width:2px;background:linear-gradient(to bottom,var(--fire),transparent)}
+.tl{position:relative;margin-bottom:22px}
+.tl::before{content:'';position:absolute;left:-26px;top:5px;
+  width:13px;height:13px;border-radius:50%;background:var(--fire);
+  box-shadow:0 0 10px var(--fire)}
+.tldt{font-size:.68rem;font-weight:900;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.tltx{font-size:.92rem;line-height:1.65;color:#ADAAA5}
+
+.brow{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px}
+.bge{background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:10px 14px;font-size:.84rem;
+  font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.bge span{font-size:1.15rem}
+
+/* ── PLATE ANIMATION ── */
+.plate-wrap{margin:24px 0;border-radius:20px;overflow:hidden;
+  background:#050508;height:200px;position:relative;
+  display:flex;align-items:center;justify-content:center}
+.pl,.pr{position:absolute;top:0;bottom:0;width:48%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;font-size:1.1rem;
+  letter-spacing:.08em;color:rgba(255,255,255,.45);flex-direction:column;gap:6px}
+.pl{left:0;background:linear-gradient(to right,#1a2f5a,#0d1a35);
+  animation:sL 3s ease-in-out infinite alternate}
+.pr{right:0;background:linear-gradient(to left,#2a1545,#130d22);
+  animation:sR 3s ease-in-out infinite alternate}
+.plab{font-size:.58rem;letter-spacing:.15em;color:rgba(255,255,255,.3);
+  font-family:'Nunito',sans-serif;font-weight:800;text-transform:uppercase}
+.rift{position:absolute;width:28px;top:0;bottom:0;
+  display:flex;align-items:center;justify-content:center;z-index:10}
+.rift-line{width:3px;height:100%;
+  background:linear-gradient(to bottom,transparent,var(--fire),var(--gold),var(--fire),transparent);
+  box-shadow:0 0 18px var(--fire),0 0 40px rgba(255,69,0,.35);
+  animation:pulse 1.6s ease-in-out infinite}
+.magma-emoji{position:absolute;bottom:-5px;font-size:1.4rem;animation:rup 2.2s ease-in-out infinite}
+.arrows{position:absolute;top:50%;transform:translateY(-50%);
+  width:100%;display:flex;justify-content:space-between;
+  padding:0 12%;pointer-events:none}
+.arr{font-size:1.6rem;animation:pulse 1.6s ease-in-out infinite}
+
+/* ── LAVA BOX ── */
+.lbox{width:100%;height:190px;border-radius:20px;overflow:hidden;margin:24px 0;
+  position:relative;background:#050508}
+.lbox canvas{width:100%;height:100%;display:block}
+
+/* ── OUTRO ── */
+#outro{text-align:center;padding:80px 0 40px;
+  opacity:0;transform:translateY(40px);transition:opacity .7s,transform .7s}
+#outro.show{opacity:1;transform:translateY(0)}
+#outro h2{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;color:var(--fire);margin-bottom:12px}
+#outro p{color:var(--muted);font-size:.92rem;line-height:1.75}
+
+/* ── KEYFRAMES ── */
+@keyframes up{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fi{to{opacity:1}}
+@keyframes bounce{0%,100%{transform:rotate(45deg) translateY(0)}50%{transform:rotate(45deg) translateY(7px)}}
+@keyframes sL{from{transform:translateX(0)}to{transform:translateX(-10px)}}
+@keyframes sR{from{transform:translateX(0)}to{transform:translateX(10px)}}
+@keyframes pulse{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes rup{0%{opacity:0;transform:translateY(0)}50%{opacity:1}100%{opacity:0;transform:translateY(-90px)}}
+
+@media(max-width:480px){
+  .sgrid{grid-template-columns:1fr}
+  .chnum{font-size:4rem}
+  .ch{padding:52px 0 36px}
+}
+/* iOS Safari bottom bar */
+#hero{padding-bottom:env(safe-area-inset-bottom)}
+</style>
+</head>
+<body>
+
+<nav id="dots">
+  <div class="dot on"  data-id="hero"></div>
+  <div class="dot"     data-id="ch1"></div>
+  <div class="dot"     data-id="ch2"></div>
+  <div class="dot"     data-id="ch3"></div>
+  <div class="dot"     data-id="ch4"></div>
+</nav>
+
+<button id="mbtn">🗺️ Karte</button>
+
+<div id="mover">
+  <div id="mtop">
+    <h3>🌋 Surtsey auf der Karte</h3>
+    <button id="mcls">✕ Schließen</button>
+  </div>
+  <div id="themap">
+    <canvas id="mapcanvas"></canvas>
+    <div class="map-zoom">
+      <button id="zin">+</button>
+      <button id="zout">−</button>
+    </div>
+    <div class="map-legend">
+      <div><span style="background:#FF4500;border-radius:50%;width:10px;height:10px;display:inline-block"></span> Surtsey</div>
+      <div><span style="background:repeating-linear-gradient(90deg,#FF4500 0,#FF4500 4px,transparent 4px,transparent 8px)"></span> Mittelatlantischer Rücken</div>
+      <div><span style="background:#FFB800"></span> Entfernung ≈ 32 km</div>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <canvas id="vc"></canvas>
+  <div class="hi">
+    <div class="badge">14. November 1963 · Nordatlantik · Island</div>
+    <h1 class="htitle">SURTSEY</h1>
+    <p class="hsub">Eine ganz neue Insel entsteht aus dem Nichts 🌋</p>
+  </div>
+  <div class="scue">
+    <span>Runterscrollen</span>
+    <div class="chev"></div>
+  </div>
+</section>
+
+<main>
+
+<!-- CH1 LAGE -->
+<article class="ch" id="ch1">
+  <div class="chnum">01</div>
+  <div class="tag">📍 Lage</div>
+  <h2>Wo liegt <b>Surtsey?</b></h2>
+  <p>Surtsey ist eine Vulkaninsel im <strong>Nordatlantik</strong>. Sie gehört zum Inselstaat <strong>Island</strong> — einem Land im Norden Europas, das für seine vielen Vulkane bekannt ist.</p>
+  <p>Die Insel liegt südlich der isländischen Südküste, in der Nähe einer Inselgruppe namens <strong>Westmännerinseln</strong>. Bis zum Festland Islands sind es etwa <strong>32 Kilometer</strong> — da war also vorher nur offenes Meer.</p>
+  <div class="callout">
+    <strong>Zum Vergleich:</strong> 32 km ist ungefähr die Strecke von Halberstadt nach Quedlinburg. Mitten da drin steckt jetzt eine Insel — die es vor 1963 noch gar nicht gab!
+  </div>
+  <div class="sgrid">
+    <div class="sc"><div class="lb">Land</div><div class="vl" style="font-size:1.2rem;padding-top:4px">Island</div><div class="un">Inselstaat in Nordeuropa</div></div>
+    <div class="sc"><div class="lb">Region</div><div class="vl" style="font-size:1rem;padding-top:4px">Westmänner­inseln</div><div class="un">Vestmannaeyjar</div></div>
+    <div class="sc"><div class="lb">Entfernung zum Festland</div><div class="vl">32</div><div class="un">Kilometer</div></div>
+    <div class="sc"><div class="lb">Lage</div><div class="vl" style="font-size:1rem;padding-top:4px">Südküste</div><div class="un">Mitten im Nordatlantik</div></div>
+  </div>
+</article>
+
+<!-- CH2 PLATTENBEWEGUNG -->
+<article class="ch" id="ch2">
+  <div class="chnum">02</div>
+  <div class="tag">🌍 Plattenbewegung</div>
+  <h2>Warum gibt es <b>hier einen Vulkan?</b></h2>
+  <p>Die Erdkruste ist nicht aus einem einzigen Stück. Sie besteht aus riesigen <strong>Gesteinsplatten</strong>, die sich ganz langsam bewegen — wie Eisschollen auf einem See.</p>
+  <p>Surtsey liegt direkt auf dem <strong>Mittelatlantischen Rücken</strong>. Das ist eine riesige Gebirgskette auf dem Meeresboden, die mitten durch den Atlantik verläuft. Hier stoßen die <strong>Nordamerikanische Platte</strong> und die <strong>Eurasische Platte</strong> zusammen.</p>
+
+  <div class="plate-wrap">
+    <div class="pl">
+      <span>🌎 Nordamerika</span>
+      <span class="plab">← driftet weg</span>
+    </div>
+    <div class="pr">
+      <span>🌍 Eurasien</span>
+      <span class="plab">driftet weg →</span>
+    </div>
+    <div class="rift">
+      <div class="rift-line"></div>
+      <div class="magma-emoji">🔥</div>
+    </div>
+    <div class="arrows">
+      <span class="arr">←</span>
+      <span class="arr">→</span>
+    </div>
+  </div>
+
+  <p>Die beiden Platten <strong>driften auseinander</strong> — das nennt man Divergenz. Dabei entsteht ein Riss im Meeresboden. Durch diesen Riss steigt ständig heißes <strong>Magma</strong> aus dem Erdinneren nach oben.</p>
+  <div class="callout">
+    <strong>Wie schnell?</strong> Die Platten bewegen sich ca. <strong>2 cm pro Jahr</strong> — ungefähr so schnell wie deine Fingernägel wachsen. Das klingt wenig, aber über Millionen von Jahren summiert sich das enorm!
+  </div>
+  <p>Das Magma kühlt im Wasser ab, wird zu hartem Stein und <strong>türmt sich auf</strong>. Wenn genug Material da ist, ragt es irgendwann über den Meeresspiegel — fertig ist eine neue Insel.</p>
+  <div class="sgrid">
+    <div class="sc"><div class="lb">Fundament</div><div class="vl" style="font-size:.95rem;padding-top:4px">Mittel­atlantischer Rücken</div><div class="un">Unter dem Atlantik</div></div>
+    <div class="sc"><div class="lb">Die zwei Platten</div><div class="vl" style="font-size:.9rem;padding-top:4px">N-Amerika &amp; Eurasien</div><div class="un">Driften auseinander</div></div>
+    <div class="sc"><div class="lb">Geschwindigkeit</div><div class="vl">~2</div><div class="un">cm pro Jahr</div></div>
+    <div class="sc"><div class="lb">Typ der Grenze</div><div class="vl" style="font-size:1.1rem;padding-top:4px">Divergent</div><div class="un">= auseinander</div></div>
+  </div>
+</article>
+
+<!-- CH3 AUSBRUCH -->
+<article class="ch" id="ch3">
+  <div class="chnum">03</div>
+  <div class="tag">🌋 Der Ausbruch</div>
+  <h2>Eine Insel <b>wird geboren!</b></h2>
+  <p>Am <strong>14. November 1963</strong> sahen Fischer plötzlich, wie das Meer dampfte und zischte. Eine riesige Rauchsäule stieg aus dem Wasser auf. Tief unten — in <strong>130 Metern Tiefe</strong> — brach ein Vulkan auf dem Meeresboden aus.</p>
+  <p>Was dann folgte, war spektakulär: Wenn <strong>über 1.000 °C heiße Lava</strong> auf eiskaltes Meerwasser trifft, gibt es gewaltige Explosionen. Meterhohe Dampf- und Aschewolken schossen in den Himmel.</p>
+
+  <div class="lbox"><canvas id="lc"></canvas></div>
+
+  <div class="tline">
+    <div class="tl">
+      <div class="tldt">14. Nov. 1963</div>
+      <div class="tltx">Fischer sehen kochendes Meer und eine Rauchsäule. Der Vulkan bricht in 130 m Tiefe aus.</div>
+    </div>
+    <div class="tl">
+      <div class="tldt">15. Nov. 1963</div>
+      <div class="tltx">Die ersten Lavamassen tauchen über der Wasseroberfläche auf. Surtsey existiert!</div>
+    </div>
+    <div class="tl">
+      <div class="tldt">1964 – 1966</div>
+      <div class="tltx">Lavaströme überziehen die Insel. Aus lockerem Aschekegel wird festes, hartes Gestein.</div>
+    </div>
+    <div class="tl">
+      <div class="tldt">Juni 1967</div>
+      <div class="tltx">Der Ausbruch endet nach fast 4 Jahren. Die Insel ist fertig: 2,7 km² groß und 174 m hoch.</div>
+    </div>
+  </div>
+
+  <div class="sgrid">
+    <div class="sc"><div class="lb">Beginn</div><div class="vl" style="font-size:1rem;padding-top:4px">14. Nov.</div><div class="un">1963</div></div>
+    <div class="sc"><div class="lb">Starttiefe</div><div class="vl">130</div><div class="un">Meter unter dem Meer</div></div>
+    <div class="sc"><div class="lb">Dauer</div><div class="vl">~4</div><div class="un">Jahre</div></div>
+    <div class="sc"><div class="lb">Ergebnis</div><div class="vl" style="font-size:1rem;padding-top:4px">Neue Insel</div><div class="un">2,7 km² Fläche</div></div>
+  </div>
+</article>
+
+<!-- CH4 BESONDERHEITEN -->
+<article class="ch" id="ch4">
+  <div class="chnum">04</div>
+  <div class="tag">🔬 Besonderheiten</div>
+  <h2>Was macht <b>Surtsey so besonders?</b></h2>
+  <p>Nach dem Ausbruch war Surtsey komplett kahl — nur schwarzer, kahler Fels. Kein Leben, keine Pflanzen, gar nichts. Aber dann passierte etwas Erstaunliches: <strong>Das Leben kam von ganz alleine.</strong></p>
+  <p>Samen wurden vom Wind hergeweht oder von Vögeln mitgebracht. Heute wachsen auf der Insel schon <strong>über 89 Pflanzenarten</strong>, Vögel nisten dort, und sogar Regenwürmer haben sich im Boden angesiedelt — alles ohne Hilfe des Menschen.</p>
+  <div class="callout">
+    <strong>Was ist Sukzession?</strong> So nennt man, wenn ein völlig leerer Lebensraum nach und nach von Tieren und Pflanzen besiedelt wird — von Schritt eins an. Auf Surtsey kann man das live beobachten. Das gibt es sonst nirgendwo auf der Welt!
+  </div>
+  <p>Deshalb ist Surtsey ein <strong>streng geschütztes Forschungsgebiet</strong>. Nur wenige Wissenschaftler dürfen die Insel betreten. Touristen haben keine Chance — die Insel soll so natürlich wie möglich bleiben.</p>
+
+  <div class="brow">
+    <div class="bge"><span>🌱</span>89 Pflanzenarten</div>
+    <div class="bge"><span>🐦</span>Vögel nisten dort</div>
+    <div class="bge"><span>🪱</span>Regenwürmer im Boden</div>
+    <div class="bge"><span>🔬</span>Nur für Forscher zugänglich</div>
+    <div class="bge"><span>🚫</span>Touristen verboten</div>
+    <div class="bge"><span>🏆</span>UNESCO Welterbe seit 2008</div>
+  </div>
+
+  <div class="sgrid" style="margin-top:22px">
+    <div class="sc"><div class="lb">Pflanzenarten</div><div class="vl">89</div><div class="un">Ohne Menschenhilfe</div></div>
+    <div class="sc"><div class="lb">UNESCO-Welterbe</div><div class="vl">seit</div><div class="un">2008</div></div>
+    <div class="sc"><div class="lb">Zugang</div><div class="vl" style="font-size:1rem;padding-top:4px">Nur Forscher</div><div class="un">Touristen verboten</div></div>
+    <div class="sc"><div class="lb">Fläche heute</div><div class="vl">1,3</div><div class="un">km² (Erosion)</div></div>
+  </div>
+</article>
+
+<div id="outro">
+  <h2>🌋 Surtsey lebt.</h2>
+  <p>Aus dem Nichts entstand eine Insel.<br>Aus kahlem Fels entstand ein Ökosystem.<br><strong style="color:var(--text)">Das alles in weniger als 60 Jahren.</strong></p>
+</div>
+
+</main>
+
+
+<script>
+/* ═══════ HERO VOLCANO ═══════ */
+(function(){
+  const cv=document.getElementById('vc');
+  const c=cv.getContext('2d');
+  let W,H;
+  function rs(){W=cv.width=cv.offsetWidth;H=cv.height=cv.offsetHeight}
+  rs(); window.addEventListener('resize',rs);
+
+  class Fire{
+    constructor(){this.r2()}
+    r2(){this.x=W*.5+(Math.random()-.5)*W*.13;this.y=H*.82;
+      this.vx=(Math.random()-.5)*1.8;this.vy=-(Math.random()*3.2+1.5);
+      this.life=1;this.decay=.004+Math.random()*.008;
+      this.rad=10+Math.random()*22;this.h=Math.random()*28}
+    tick(){this.x+=this.vx+Math.sin(Date.now()*.001+this.y)*.2;this.y+=this.vy;
+      this.vy-=.025;this.life-=this.decay;this.rad*=.997;if(this.life<=0)this.r2()}
+    draw(){c.save();c.globalAlpha=Math.max(0,this.life)*.52;
+      const g=c.createRadialGradient(this.x,this.y,0,this.x,this.y,this.rad);
+      g.addColorStop(0,`hsla(${this.h},100%,65%,1)`);
+      g.addColorStop(.5,`hsla(${this.h+15},100%,45%,.5)`);
+      g.addColorStop(1,'transparent');
+      c.fillStyle=g;c.beginPath();c.arc(this.x,this.y,this.rad,0,Math.PI*2);c.fill();c.restore()}
+  }
+  class Smoke{
+    constructor(){this.r2()}
+    r2(){this.x=W*.5+(Math.random()-.5)*50;this.y=H*.72;
+      this.vx=(Math.random()-.5)*.8;this.vy=-(Math.random()*1.2+.5);
+      this.life=1;this.decay=.003+Math.random()*.004;this.rad=20+Math.random()*45}
+    tick(){this.x+=this.vx+Math.sin(Date.now()*.0005+this.x)*.3;this.y+=this.vy;
+      this.life-=this.decay;this.rad+=.3;if(this.life<=0)this.r2()}
+    draw(){c.save();c.globalAlpha=Math.max(0,this.life)*.17;
+      const g=c.createRadialGradient(this.x,this.y,0,this.x,this.y,this.rad);
+      g.addColorStop(0,'#999');g.addColorStop(1,'transparent');
+      c.fillStyle=g;c.beginPath();c.arc(this.x,this.y,this.rad,0,Math.PI*2);c.fill();c.restore()}
+  }
+  class Ember{
+    constructor(){this.r2()}
+    r2(){this.x=W*.5+(Math.random()-.5)*W*.09;this.y=H*.79;
+      this.vx=(Math.random()-.5)*4.5;this.vy=-(Math.random()*6+3);
+      this.life=1;this.decay=.01+Math.random()*.015;this.rad=1.5+Math.random()*2.5}
+    tick(){this.x+=this.vx;this.y+=this.vy;this.vy+=.08;this.life-=this.decay;if(this.life<=0)this.r2()}
+    draw(){c.save();c.globalAlpha=Math.max(0,this.life);
+      c.fillStyle=this.life>.5?'#FFD166':'#FF4500';c.shadowColor='#FF8C00';c.shadowBlur=8;
+      c.beginPath();c.arc(this.x,this.y,this.rad,0,Math.PI*2);c.fill();c.restore()}
+  }
+
+  function drawVolcano(){
+    const mx=W/2,peak=H*.57,sp=W*.44,base=H;
+    const gl=c.createRadialGradient(mx,peak,0,mx,peak,130);
+    gl.addColorStop(0,'rgba(255,120,0,.28)');gl.addColorStop(1,'transparent');
+    c.fillStyle=gl;c.fillRect(0,0,W,H);
+    c.beginPath();c.moveTo(mx-sp,base);
+    c.quadraticCurveTo(mx-sp*.35,peak+45,mx-38,peak);
+    c.lineTo(mx+38,peak);
+    c.quadraticCurveTo(mx+sp*.35,peak+45,mx+sp,base);
+    c.closePath();
+    const bg=c.createLinearGradient(mx,peak,mx,base);
+    bg.addColorStop(0,'#1a0500');bg.addColorStop(1,'#060608');
+    c.fillStyle=bg;c.fill();
+    const lg=c.createRadialGradient(mx,peak,0,mx,peak,48);
+    lg.addColorStop(0,'#FF8C00');lg.addColorStop(.6,'#FF4500');lg.addColorStop(1,'transparent');
+    c.fillStyle=lg;c.beginPath();c.ellipse(mx,peak,48,13,0,0,Math.PI*2);c.fill();
+    [[mx-22,peak+8,mx-65,peak+85,mx-95,base,.3],
+     [mx+18,peak+8,mx+60,peak+75,mx+88,base,.25]].forEach(([x1,y1,cx1,cy1,x2,y2,a])=>{
+      c.beginPath();c.moveTo(x1,y1);c.quadraticCurveTo(cx1,cy1,x2,y2);
+      c.strokeStyle=`rgba(255,100,0,${a})`;c.lineWidth=6;c.lineCap='round';c.stroke()});
+  }
+
+  const parts=[];
+  for(let i=0;i<65;i++){const f=new Fire();f.life=Math.random();parts.push(f)}
+  for(let i=0;i<30;i++){const s=new Smoke();s.life=Math.random();parts.push(s)}
+  const embers=[];
+  for(let i=0;i<55;i++){const e=new Ember();e.life=Math.random();embers.push(e)}
+
+  function loop(){
+    c.clearRect(0,0,W,H);drawVolcano();
+    parts.forEach(p=>{p.tick();p.draw()});
+    embers.forEach(e=>{e.tick();e.draw()});
+    requestAnimationFrame(loop)}
+  loop();
+})();
+
+/* ═══════ LAVA CANVAS ch3 ═══════ */
+(function(){
+  const cv=document.getElementById('lc');
+  if(!cv)return;
+  const c=cv.getContext('2d');
+  let W,H;
+  function rs(){W=cv.width=cv.offsetWidth;H=cv.height=cv.offsetHeight}
+  rs();
+
+  class Drop{
+    constructor(){this.r2()}
+    r2(){this.x=Math.random();this.y=.35+Math.random()*.5;
+      this.vx=(Math.random()-.5)*.004;this.vy=-(Math.random()*.006+.002);
+      this.life=Math.random();this.decay=.005+Math.random()*.008;
+      this.rad=(6+Math.random()*14)/100}
+    tick(){this.x+=this.vx;this.y+=this.vy;this.life-=this.decay;if(this.life<=0||this.y<0)this.r2()}
+    draw(){const px=this.x*W,py=this.y*H,pr=this.rad*W;
+      c.save();c.globalAlpha=Math.max(0,this.life)*.7;
+      const g=c.createRadialGradient(px,py,0,px,py,pr);
+      g.addColorStop(0,'#FF8C00');g.addColorStop(.5,'#FF4500');g.addColorStop(1,'transparent');
+      c.fillStyle=g;c.beginPath();c.arc(px,py,pr,0,Math.PI*2);c.fill();c.restore()}
+  }
+  class Steam{
+    constructor(){this.r2()}
+    r2(){this.x=.2+Math.random()*.6;this.y=.4+Math.random()*.2;
+      this.vx=(Math.random()-.5)*.002;this.vy=-(Math.random()*.004+.003);
+      this.life=Math.random();this.decay=.004+Math.random()*.005;this.rad=.02+Math.random()*.05}
+    tick(){this.x+=this.vx;this.y+=this.vy;this.life-=this.decay;this.rad+=.0005;if(this.life<=0)this.r2()}
+    draw(){const px=this.x*W,py=this.y*H,pr=this.rad*W;
+      c.save();c.globalAlpha=Math.max(0,this.life)*.22;
+      const g=c.createRadialGradient(px,py,0,px,py,pr);
+      g.addColorStop(0,'#ccc');g.addColorStop(1,'transparent');
+      c.fillStyle=g;c.beginPath();c.arc(px,py,pr,0,Math.PI*2);c.fill();c.restore()}
+  }
+
+  const drops=Array.from({length:25},()=>{const d=new Drop();d.life=Math.random();return d});
+  const steams=Array.from({length:15},()=>{const s=new Steam();s.life=Math.random();return s});
+
+  function drawLava(){
+    const sky=c.createLinearGradient(0,0,0,H*.45);
+    sky.addColorStop(0,'#060a14');sky.addColorStop(1,'#0a1528');
+    c.fillStyle=sky;c.fillRect(0,0,W,H*.45);
+    const lava=c.createLinearGradient(0,H*.4,0,H);
+    lava.addColorStop(0,'#8B0000');lava.addColorStop(.4,'#CC2200');lava.addColorStop(1,'#FF4500');
+    c.fillStyle=lava;c.fillRect(0,H*.4,W,H);
+    const t=Date.now()*.001;
+    c.beginPath();c.moveTo(0,H*.42);
+    for(let i=0;i<=W;i+=4){
+      const y=H*.42+Math.sin(i*.015+t)*6+Math.sin(i*.03+t*1.3)*3;
+      c.lineTo(i,y)}
+    c.lineTo(W,H);c.lineTo(0,H);c.closePath();
+    const surf=c.createLinearGradient(0,H*.38,0,H*.5);
+    surf.addColorStop(0,'#FF6600');surf.addColorStop(.5,'#CC2200');surf.addColorStop(1,'#8B0000');
+    c.fillStyle=surf;c.fill();
+    const sg=c.createRadialGradient(W*.5,H*.42,0,W*.5,H*.42,80);
+    sg.addColorStop(0,'rgba(255,140,0,.5)');sg.addColorStop(1,'transparent');
+    c.fillStyle=sg;c.fillRect(0,0,W,H*.5);
+  }
+
+  function loop(){
+    c.clearRect(0,0,W,H);drawLava();
+    drops.forEach(d=>{d.tick();d.draw()});
+    steams.forEach(s=>{s.tick();s.draw()});
+    requestAnimationFrame(loop)}
+  loop();
+})();
+
+/* ═══════ SCROLL REVEAL ═══════ */
+const revIO=new IntersectionObserver(e=>{
+  e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('show')})},{threshold:.12});
+document.querySelectorAll('.ch, #outro').forEach(el=>revIO.observe(el));
+
+/* ═══════ CANVAS MAP ═══════ */
+(function(){
+  const mover=document.getElementById('mover');
+  const cv=document.getElementById('mapcanvas');
+  const ctx=cv.getContext('2d');
+
+  let W=0,H=0;
+  let viewLon=-20.3, viewLat=63.9, zoom=1.0;
+  let rafId=null;
+  let isOpen=false;
+
+  // Touch/drag state — clean
+  let drag={active:false,startX:0,startY:0,lastLon:0,lastLat:0};
+
+  const icelandCoast=[
+    [66.5,-22.7],[66.4,-18.5],[65.8,-13.5],[65.0,-13.4],[64.3,-14.5],
+    [63.4,-18.0],[63.4,-20.5],[63.8,-22.5],[64.5,-24.5],[65.5,-24.0],[66.5,-22.7]
+  ];
+  const westmanIslands=[[63.44,-20.27],[63.38,-20.3],[63.46,-20.18]];
+  const ridge=[[67.5,-19],[66.5,-18.8],[65.5,-17.5],[64.2,-20.5],[63.2,-22],[62,-25]];
+
+  function ll(lat,lon){
+    const lonRange=14/zoom, latRange=7/zoom;
+    return [
+      (lon-viewLon)/lonRange*W + W/2,
+      -(lat-viewLat)/latRange*H + H/2
+    ];
+  }
+
+  function draw(){
+    W=cv.width=cv.offsetWidth;
+    H=cv.height=cv.offsetHeight;
+    if(!W||!H)return;
+
+    // Ocean
+    const ocean=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H));
+    ocean.addColorStop(0,'#0d1e36');ocean.addColorStop(1,'#060e1c');
+    ctx.fillStyle=ocean;ctx.fillRect(0,0,W,H);
+
+    // Grid
+    ctx.save();ctx.strokeStyle='rgba(255,255,255,.04)';ctx.lineWidth=1;
+    for(let lon=-30;lon<0;lon+=2){const [x]=ll(55,lon);ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+    for(let lat=60;lat<70;lat+=1){const [,y]=ll(lat,-30);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+    ctx.restore();
+
+    // Ridge
+    ctx.save();ctx.setLineDash([10,7]);ctx.strokeStyle='rgba(255,69,0,.5)';ctx.lineWidth=2.5;
+    ctx.shadowColor='#FF4500';ctx.shadowBlur=5;
+    ctx.beginPath();ridge.forEach(([la,lo],i)=>{const [x,y]=ll(la,lo);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});
+    ctx.stroke();ctx.restore();
+
+    // Iceland
+    ctx.save();ctx.beginPath();
+    icelandCoast.forEach(([la,lo],i)=>{const [x,y]=ll(la,lo);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});
+    ctx.closePath();
+    const ig=ctx.createLinearGradient(0,0,0,H);ig.addColorStop(0,'#2a3a2a');ig.addColorStop(1,'#1a2a1a');
+    ctx.fillStyle=ig;ctx.fill();
+    ctx.strokeStyle='rgba(100,140,100,.45)';ctx.lineWidth=1.5;ctx.stroke();ctx.restore();
+
+    // Westman dots
+    westmanIslands.forEach(([la,lo])=>{
+      const [x,y]=ll(la,lo);
+      ctx.save();ctx.fillStyle='#2a3a2a';ctx.strokeStyle='rgba(100,140,100,.4)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
+    });
+
+    // Distance line
+    const [ax,ay]=ll(63.52,-20.1), [bx,by]=ll(63.302,-20.601);
+    ctx.save();ctx.setLineDash([5,5]);ctx.strokeStyle='rgba(255,184,0,.5)';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(255,184,0,.85)';ctx.font='bold 11px sans-serif';ctx.textAlign='center';
+    ctx.shadowColor='rgba(0,0,0,.8)';ctx.shadowBlur=3;
+    ctx.fillText('≈ 32 km',(ax+bx)/2+20,(ay+by)/2-5);ctx.restore();
+
+    // Labels
+    const [ilx,ily]=ll(65.1,-19.5);
+    ctx.save();ctx.font='bold 13px sans-serif';ctx.fillStyle='rgba(255,200,100,.75)';
+    ctx.textAlign='center';ctx.shadowColor='rgba(0,0,0,.9)';ctx.shadowBlur=4;
+    ctx.fillText('🏔 ISLAND',ilx,ily);ctx.restore();
+
+    const [wmx,wmy]=ll(63.55,-20.15);
+    ctx.save();ctx.font='700 10px sans-serif';ctx.fillStyle='rgba(180,180,180,.65)';
+    ctx.textAlign='center';ctx.shadowColor='rgba(0,0,0,.9)';ctx.shadowBlur=3;
+    ctx.fillText('Westmännerinseln',wmx,wmy-16);ctx.restore();
+
+    const [rlx,rly]=ll(65.3,-18.0);
+    ctx.save();ctx.font='700 10px sans-serif';ctx.fillStyle='rgba(255,90,0,.8)';
+    ctx.textAlign='left';ctx.shadowColor='rgba(0,0,0,.9)';ctx.shadowBlur=3;
+    ctx.fillText('Mittelatlantischer Rücken',rlx+6,rly);ctx.restore();
+
+    // Surtsey pulse
+    const [sx,sy]=ll(63.302,-20.601);
+    const p=(Math.sin(Date.now()*.003)+1)/2;
+    for(let i=1;i<=3;i++){
+      ctx.save();ctx.strokeStyle=`rgba(255,69,0,${(1-i/4)*(1-p)*.5})`;ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.arc(sx,sy,12+i*9*p,0,Math.PI*2);ctx.stroke();ctx.restore();
+    }
+    ctx.save();
+    const g=ctx.createRadialGradient(sx,sy,0,sx,sy,12);
+    g.addColorStop(0,'#FF8C00');g.addColorStop(.5,'#FF4500');g.addColorStop(1,'rgba(255,69,0,.1)');
+    ctx.fillStyle=g;ctx.shadowColor='#FF4500';ctx.shadowBlur=18;
+    ctx.beginPath();ctx.arc(sx,sy,11,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();ctx.restore();
+
+    ctx.save();ctx.font='bold 13px sans-serif';ctx.fillStyle='#FF8C00';ctx.textAlign='center';
+    ctx.shadowColor='rgba(0,0,0,.95)';ctx.shadowBlur=5;
+    ctx.fillText('🌋 Surtsey',sx,sy-17);ctx.restore();
+
+    if(isOpen) rafId=requestAnimationFrame(draw);
+  }
+
+  // ── DRAG: pixel delta → geo delta, stored at dragstart ──
+  function getClientXY(e){
+    return e.touches ? [e.touches[0].clientX,e.touches[0].clientY] : [e.clientX,e.clientY];
+  }
+
+  cv.addEventListener('mousedown',e=>{
+    e.preventDefault();
+    const [x,y]=getClientXY(e);
+    drag={active:true,startX:x,startY:y,lastLon:viewLon,lastLat:viewLat};
+  });
+  cv.addEventListener('touchstart',e=>{
+    const [x,y]=getClientXY(e);
+    drag={active:true,startX:x,startY:y,lastLon:viewLon,lastLat:viewLat};
+  },{passive:true});
+
+  function onMove(e){
+    if(!drag.active)return;
+    const [x,y]=getClientXY(e);
+    const dx=x-drag.startX, dy=y-drag.startY;
+    const lonRange=14/zoom, latRange=7/zoom;
+    viewLon=drag.lastLon - dx/W*lonRange;
+    viewLat=drag.lastLat + dy/H*latRange;
+  }
+  cv.addEventListener('mousemove',onMove);
+  cv.addEventListener('touchmove',onMove,{passive:true});
+  const stopDrag=()=>{drag.active=false};
+  cv.addEventListener('mouseup',stopDrag);
+  cv.addEventListener('touchend',stopDrag);
+  cv.addEventListener('mouseleave',stopDrag);
+
+  // ── ZOOM ──
+  document.getElementById('zin').addEventListener('click',()=>{zoom=Math.min(zoom*1.5,8)});
+  document.getElementById('zout').addEventListener('click',()=>{zoom=Math.max(zoom/1.5,.4)});
+
+  // ── OPEN / CLOSE ──
+  document.getElementById('mbtn').addEventListener('click',()=>{
+    mover.classList.add('open');
+    isOpen=true;
+    cancelAnimationFrame(rafId);
+    // Small delay so overlay finishes sliding before measuring canvas size
+    setTimeout(()=>{ rafId=requestAnimationFrame(draw); },100);
+  });
+  document.getElementById('mcls').addEventListener('click',()=>{
+    mover.classList.remove('open');
+    isOpen=false;
+    cancelAnimationFrame(rafId);
+  });
+})();
+</script>
+</body>
+</html>
